@@ -10,6 +10,14 @@ import React from 'react';
 import SpellUsable from '../features/SpellUsable';
 import ExecuteRange from './Execute/ExecuteRange';
 
+// Slam should be the lowest priority ability
+// Analyzer should check that:
+//  - Mortal Strike was not usable
+//  - Execute was not usable
+//  - Overpower was not usable
+//  - Rend was not refreshable
+// Ideally would also check rage value to see if should have been cast
+
 class Slam extends Analyzer {
   get badCastSuggestionThresholds() {
     return {
@@ -33,11 +41,14 @@ class Slam extends Analyzer {
 
   constructor(...args) {
     super(...args);
+
     this.addEventListener(Events.cast.by(SELECTED_PLAYER).spell(SPELLS.SLAM), this._onSlamCast);
   }
 
   _onSlamCast(event) {
     this.totalCast += 1;
+    const suddenDeath = this.selectedCombatant.getBuff(SPELLS.SUDDEN_DEATH_ARMS_TALENT_BUFF.id);
+
     if (
       this.spellUsable.isAvailable(SPELLS.MORTAL_STRIKE.id) &&
       !this.executeRange.isTargetInExecuteRange(event)
@@ -47,10 +58,11 @@ class Slam extends Analyzer {
       event.meta.inefficientCastReason =
         'This Slam was used on a target while Mortal Strike was off cooldown.';
       this.badCast += 1;
-    } else if (this.executeRange.isTargetInExecuteRange(event)) {
+    } else if (this.executeRange.isTargetInExecuteRange(event) || suddenDeath) {
       event.meta = event.meta || {};
-      event.meta.isEnhancedCast = true;
-      event.meta.enhancedCastReason = 'This Slam consumed a Crushing Assasult buff.';
+      event.meta.isInefficientCast = true;
+      event.meta.inefficientCastReason = 'This Slam was used on a target while Execute was usable.';
+      this.badCast += 1;
     }
   }
 
