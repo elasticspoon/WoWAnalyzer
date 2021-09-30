@@ -12,8 +12,8 @@ import ExecuteRange from './Execute/ExecuteRange';
 
 // Slam should be the lowest priority ability
 // Analyzer should check that:
-//  - Mortal Strike was not usable
-//  - Execute was not usable
+//  - Mortal Strike was not usable - done
+//  - Execute was not usable - done
 //  - Overpower was not usable
 //  - Rend was not refreshable
 // Ideally would also check rage value to see if should have been cast
@@ -38,6 +38,8 @@ class Slam extends Analyzer {
   };
   badCast = 0;
   totalCast = 0;
+  skullSplitter = this.selectedCombatant.hasTalent(SPELLS.SKULLSPLITTER_TALENT.id);
+  enduringBlow = this.selectedCombatant.hasLegendaryByBonusID(SPELLS.ENDURING_BLOW.bonusID);
 
   constructor(...args) {
     super(...args);
@@ -48,8 +50,9 @@ class Slam extends Analyzer {
   _onSlamCast(event) {
     this.totalCast += 1;
     const suddenDeath = this.selectedCombatant.getBuff(SPELLS.SUDDEN_DEATH_ARMS_TALENT_BUFF.id);
+    const overpower = this.selectedCombatant.getBuff(SPELLS.OVERPOWER.id);
 
-    if (
+    /* if (
       this.spellUsable.isAvailable(SPELLS.MORTAL_STRIKE.id) &&
       !this.executeRange.isTargetInExecuteRange(event)
     ) {
@@ -63,7 +66,83 @@ class Slam extends Analyzer {
       event.meta.isInefficientCast = true;
       event.meta.inefficientCastReason = 'This Slam was used on a target while Execute was usable.';
       this.badCast += 1;
+    } */
+
+    if (this.executeRange.isTargetInExecuteRange(event)) {
+      event.meta = event.meta || {};
+      event.meta.isInefficientCast = true;
+      event.meta.inefficientCastReason = 'This Slam was used on a target in Execute range.';
+      this.badCast += 1;
     }
+    // Slam used on target with no rend
+    /* else if (false) {
+      event.meta = event.meta || {};
+      event.meta.isInefficientCast = true;
+      event.meta.inefficientCastReason = 'This Slam was used on a target while Rend was not applied.';
+      this.badCast += 1;
+    }  */
+    // Slam was used instead of 2 stack overpower
+    /* else if (overpower) {
+      event.meta = event.meta || {};
+      event.meta.isInefficientCast = true;
+      event.meta.inefficientCastReason = 'This Slam was used on a target while Overpower had 2 stacks.';
+      this.badCast += 1;
+    }  */
+    // Slam was used instead of Mortal Strike with 2 stacks or lego
+    else if (
+      (this.enduringBlow || (overpower && overpower.stacks === 2)) &&
+      this.spellUsable.isAvailable(SPELLS.MORTAL_STRIKE.id)
+    ) {
+      event.meta = event.meta || {};
+      event.meta.isInefficientCast = true;
+      event.meta.inefficientCastReason =
+        'This Slam was used on a target while Mortal Strike was usable with lego.';
+      this.badCast += 1;
+    }
+    // Slam instead of execute /w SD
+    else if (suddenDeath) {
+      event.meta = event.meta || {};
+      event.meta.isInefficientCast = true;
+      event.meta.inefficientCastReason = 'This Slam was used on a target while Execute was usable.';
+      this.badCast += 1;
+    }
+    // Slam instead of skullsplitter
+    /* else if (this.skullsplitter
+             && this.spellUsable.isAvailable(SPELLS.SKULLSPLITTER_TALENT.id)) {
+      event.meta = event.meta || {};
+      event.meta.isInefficientCast = true;
+      event.meta.inefficientCastReason = 'This Slam was used on a target while Skullsplitter was usable.';
+      this.badCast += 1;
+    } */
+    // Slam instead of bladestorm (idk if this one should be here)
+    /* else if (false) {
+      event.meta = event.meta || {};
+      event.meta.isInefficientCast = true;
+      event.meta.inefficientCastReason = 'This Slam was used on a target while Mortal Strike was usable.';
+      this.badCast += 1;
+    }  */
+    // Slam instead of overpower
+    /* else if (overpower) {
+      event.meta = event.meta || {};
+      event.meta.isInefficientCast = true;
+      event.meta.inefficientCastReason = 'This Slam was used on a target while Mortal Strike was usable.';
+      this.badCast += 1;
+    }  */
+    // Slam instead of mortal strike with no legos
+    else if (this.spellUsable.isAvailable(SPELLS.MORTAL_STRIKE.id)) {
+      event.meta = event.meta || {};
+      event.meta.isInefficientCast = true;
+      event.meta.inefficientCastReason =
+        'This Slam was used on a target while Mortal Strike was usable.';
+      this.badCast += 1;
+    }
+    // Slam instead of rend
+    /* else if (false) {
+      event.meta = event.meta || {};
+      event.meta.isInefficientCast = true;
+      event.meta.inefficientCastReason = 'This Slam was used on a target while Mortal Strike was usable.';
+      this.badCast += 1;
+    }  */
   }
 
   suggestions(when) {
