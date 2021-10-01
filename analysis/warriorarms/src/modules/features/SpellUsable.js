@@ -1,4 +1,5 @@
 import SPELLS from 'common/SPELLS';
+import { EventType } from 'parser/core/Events';
 import CoreSpellUsable from 'parser/shared/modules/SpellUsable';
 
 class SpellUsable extends CoreSpellUsable {
@@ -6,16 +7,16 @@ class SpellUsable extends CoreSpellUsable {
     ...CoreSpellUsable.dependencies,
   };
 
-  beginCooldown(spellId, ...args) {
+  onEvent(event) {
+    super.onEvent(event);
     // Tactician passive: You have a 1.40% chance per Rage spent on damaging abilities to reset the remaining cooldown on Overpower.
-    if (spellId === SPELLS.OVERPOWER.id) {
-      if (this.isOnCooldown(spellId)) {
-        this.endCooldown(spellId);
+    if (event.type === EventType.ApplyBuff || event.type === EventType.RefreshBuff) {
+      if (event.ability.guid === SPELLS.TACTICIAN.id) {
+        if (this.isOnCooldown(SPELLS.OVERPOWER.id)) {
+          this.endCooldown(SPELLS.OVERPOWER.id);
+        }
       }
     }
-
-    // We must do this after ending the cd or it will trigger an error
-    super.beginCooldown(spellId, ...args);
   }
 }
 
