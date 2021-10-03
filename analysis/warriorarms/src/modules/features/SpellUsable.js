@@ -18,7 +18,6 @@ class SpellUsable extends CoreSpellUsable {
           const remainingCD =
             this.abilities.getAbility(SPELLS.OVERPOWER.id).cooldown * 1000 -
             this.cooldownRemaining(SPELLS.OVERPOWER.id);
-          this.log(`${remainingCD} left on OP CD.`);
           this.endCooldown(SPELLS.OVERPOWER.id, false, this.owner.currentTimestamp, remainingCD);
         }
       }
