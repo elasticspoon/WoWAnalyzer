@@ -40,6 +40,7 @@ class Slam extends Analyzer {
   totalCast = 0;
   skullSplitter = this.selectedCombatant.hasTalent(SPELLS.SKULLSPLITTER_TALENT.id);
   enduringBlow = this.selectedCombatant.hasLegendaryByBonusID(SPELLS.ENDURING_BLOW.bonusID);
+  rend = this.selectedCombatant.hasTalent(SPELLS.REND_TALENT.id);
 
   constructor(...args) {
     super(...args);
@@ -51,23 +52,15 @@ class Slam extends Analyzer {
     this.totalCast += 1;
     const suddenDeath = this.selectedCombatant.getBuff(SPELLS.SUDDEN_DEATH_ARMS_TALENT_BUFF.id);
     const overpower = this.selectedCombatant.getBuff(SPELLS.OVERPOWER.id);
+    const rendOnTarget = this.enemies.enemies[event.targetID].getBuff(
+      SPELLS.REND_TALENT.id,
+      null,
+      0,
+      0,
+      event.sourceID,
+    );
 
-    /* if (
-      this.spellUsable.isAvailable(SPELLS.MORTAL_STRIKE.id) &&
-      !this.executeRange.isTargetInExecuteRange(event)
-    ) {
-      event.meta = event.meta || {};
-      event.meta.isInefficientCast = true;
-      event.meta.inefficientCastReason =
-        'This Slam was used on a target while Mortal Strike was off cooldown.';
-      this.badCast += 1;
-    } else if (this.executeRange.isTargetInExecuteRange(event) || suddenDeath) {
-      event.meta = event.meta || {};
-      event.meta.isInefficientCast = true;
-      event.meta.inefficientCastReason = 'This Slam was used on a target while Execute was usable.';
-      this.badCast += 1;
-    } */
-
+    // slam used on target in execute range.
     if (this.executeRange.isTargetInExecuteRange(event)) {
       event.meta = event.meta || {};
       event.meta.isInefficientCast = true;
@@ -75,19 +68,21 @@ class Slam extends Analyzer {
       this.badCast += 1;
     }
     // Slam used on target with no rend
-    /* else if (false) {
+    else if (this.rend && !rendOnTarget) {
       event.meta = event.meta || {};
       event.meta.isInefficientCast = true;
-      event.meta.inefficientCastReason = 'This Slam was used on a target while Rend was not applied.';
+      event.meta.inefficientCastReason =
+        'This Slam was used on a target while Rend was not applied.';
       this.badCast += 1;
-    }  */
+    }
     // Slam was used instead of 2 stack overpower
-    /* else if (overpower) {
+    else if (!this.spellUsable.isOnCooldown(SPELLS.OVERPOWER.id)) {
       event.meta = event.meta || {};
       event.meta.isInefficientCast = true;
-      event.meta.inefficientCastReason = 'This Slam was used on a target while Overpower had 2 stacks.';
+      event.meta.inefficientCastReason =
+        'This Slam was used on a target while Overpower had 2 stacks.';
       this.badCast += 1;
-    }  */
+    }
     // Slam was used instead of Mortal Strike with 2 stacks or lego
     else if (
       (this.enduringBlow || (overpower && overpower.stacks === 2)) &&
@@ -96,24 +91,25 @@ class Slam extends Analyzer {
       event.meta = event.meta || {};
       event.meta.isInefficientCast = true;
       event.meta.inefficientCastReason =
-        'This Slam was used on a target while Mortal Strike was usable with lego.';
+        'This Slam was used on a target while Mortal Strike was off cooldown.';
       this.badCast += 1;
     }
     // Slam instead of execute /w SD
     else if (suddenDeath) {
       event.meta = event.meta || {};
       event.meta.isInefficientCast = true;
-      event.meta.inefficientCastReason = 'This Slam was used on a target while Execute was usable.';
+      event.meta.inefficientCastReason =
+        'This Slam was used on a target while Execute was available.';
       this.badCast += 1;
     }
     // Slam instead of skullsplitter
-    /* else if (this.skullsplitter
-             && this.spellUsable.isAvailable(SPELLS.SKULLSPLITTER_TALENT.id)) {
+    else if (this.skullSplitter && this.spellUsable.isAvailable(SPELLS.SKULLSPLITTER_TALENT.id)) {
       event.meta = event.meta || {};
       event.meta.isInefficientCast = true;
-      event.meta.inefficientCastReason = 'This Slam was used on a target while Skullsplitter was usable.';
+      event.meta.inefficientCastReason =
+        'This Slam was used on a target while Skullsplitter was available.';
       this.badCast += 1;
-    } */
+    }
     // Slam instead of bladestorm (idk if this one should be here)
     /* else if (false) {
       event.meta = event.meta || {};
@@ -122,12 +118,13 @@ class Slam extends Analyzer {
       this.badCast += 1;
     }  */
     // Slam instead of overpower
-    /* else if (overpower) {
+    else if (this.spellUsable.isAvailable(SPELLS.OVERPOWER.id)) {
       event.meta = event.meta || {};
       event.meta.isInefficientCast = true;
-      event.meta.inefficientCastReason = 'This Slam was used on a target while Mortal Strike was usable.';
+      event.meta.inefficientCastReason =
+        'This Slam was used on a target while Overpower was available.';
       this.badCast += 1;
-    }  */
+    }
     // Slam instead of mortal strike with no legos
     else if (this.spellUsable.isAvailable(SPELLS.MORTAL_STRIKE.id)) {
       event.meta = event.meta || {};
@@ -137,12 +134,13 @@ class Slam extends Analyzer {
       this.badCast += 1;
     }
     // Slam instead of rend
-    /* else if (false) {
+    else if (this.rend && rendOnTarget && rendOnTarget.duration < 4500) {
       event.meta = event.meta || {};
       event.meta.isInefficientCast = true;
-      event.meta.inefficientCastReason = 'This Slam was used on a target while Mortal Strike was usable.';
+      event.meta.inefficientCastReason =
+        'This Slam was used on a target when Rend should have been refreshed.';
       this.badCast += 1;
-    }  */
+    }
   }
 
   suggestions(when) {
@@ -150,8 +148,8 @@ class Slam extends Analyzer {
       suggest(
         <>
           Try to avoid using <SpellLink id={SPELLS.SLAM.id} /> when{' '}
-          <SpellLink id={SPELLS.MORTAL_STRIKE.id} /> or <SpellLink id={SPELLS.EXECUTE.id} /> is
-          available as it is more rage efficient.
+          <SpellLink id={SPELLS.MORTAL_STRIKE.id} />, <SpellLink id={SPELLS.OVERPOWER.id} /> or{' '}
+          <SpellLink id={SPELLS.EXECUTE.id} /> is available as it is more rage efficient.
         </>,
       )
         .icon(SPELLS.SLAM.icon)
