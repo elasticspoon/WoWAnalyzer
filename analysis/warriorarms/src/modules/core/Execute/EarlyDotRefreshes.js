@@ -1,4 +1,5 @@
 import { formatDuration } from 'common/format';
+import SPELLS from 'common/SPELLS';
 import Analyzer, { SELECTED_PLAYER } from 'parser/core/Analyzer';
 import Events from 'parser/core/Events';
 import AbilityTracker from 'parser/shared/modules/AbilityTracker';
@@ -6,6 +7,7 @@ import Enemies from 'parser/shared/modules/Enemies';
 import { encodeTargetString } from 'parser/shared/modules/EnemyInstances';
 
 import ExecuteRange from './ExecuteRange';
+import MortalStrikeAnalyzer from './MortalStrike';
 
 const BUFFER_MS = 100;
 const PANDEMIC_WINDOW = 0.3;
@@ -25,6 +27,7 @@ class EarlyDotRefreshes extends Analyzer {
     enemies: Enemies,
     abilityTracker: AbilityTracker,
     executeRange: ExecuteRange,
+    mortalStrike: MortalStrikeAnalyzer,
   };
 
   static dots = [];
@@ -117,8 +120,12 @@ class EarlyDotRefreshes extends Analyzer {
     if (!this.lastGCD || !this.lastCast) {
       return;
     }
-    // We only check if Mortal Strike has been cast during the execution phase
-    if (!this.executeRange.isTargetInExecuteRange(event)) {
+    // We only check if the MortalStrike was bad based on logic in
+    // MortalStrike.js
+    if (
+      this.lastCast.ability.guid === SPELLS.MORTAL_STRIKE.id &&
+      !this.mortalStrike.isBadMortalStrikeCast(this.lastCast)
+    ) {
       return;
     }
     // We wait roughly a GCD to check, to account for minor travel times.
@@ -126,6 +133,7 @@ class EarlyDotRefreshes extends Analyzer {
     if (timeSinceCast < this.lastCastBuffer) {
       return;
     }
+
     this.casts[this.lastCast.ability.guid].addedDuration += this.lastCastMaxEffect;
     this.isLastCastBad(event);
     this.lastGCD = null;
