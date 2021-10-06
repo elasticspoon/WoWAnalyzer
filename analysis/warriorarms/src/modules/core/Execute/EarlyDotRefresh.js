@@ -27,6 +27,12 @@ class EarlyDotRefresh extends EarlyDotRefreshesCore {
       castId: SPELLS.MORTAL_STRIKE.id,
       duration: 12000,
     },
+    {
+      name: 'Rend',
+      debuffId: SPELLS.REND_TALENT.id,
+      castId: SPELLS.REND_TALENT.id,
+      duration: 15000,
+    },
   ];
 
   // Checks the status of the last cast and marks it accordingly.
