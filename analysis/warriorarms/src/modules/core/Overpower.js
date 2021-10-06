@@ -4,13 +4,16 @@ import SPELLS from 'common/SPELLS';
 import { SpellLink } from 'interface';
 import { SpellIcon } from 'interface';
 import Analyzer, { SELECTED_PLAYER } from 'parser/core/Analyzer';
+import calculateMaxCasts from 'parser/core/calculateMaxCasts';
 import Events from 'parser/core/Events';
+import Abilities from 'parser/core/modules/Abilities';
 import Enemies from 'parser/shared/modules/Enemies';
 import StatisticBox, { STATISTIC_ORDER } from 'parser/ui/StatisticBox';
 import React from 'react';
 
 import SpellUsable from '../features/SpellUsable';
 import ExecuteRange from './Execute/ExecuteRange';
+import TacticianProc from './TacticianProc';
 
 /**
  * Logs used to test:
@@ -20,8 +23,26 @@ import ExecuteRange from './Execute/ExecuteRange';
  *
  */
 
+/* 
+Other bad casts to include:
+overpower over free execute
+overpower over ms with lego 
+*/
+
 class OverpowerAnalyzer extends Analyzer {
-  get WastedOverpowerThresholds() {
+  get MissedOverpowerCastsThresholds() {
+    return {
+      actual: 1 - this.overpowerCasts / this.maxOverpowerCasts(),
+      isGreaterThan: {
+        minor: 0.05,
+        average: 0.1,
+        major: 0.2,
+      },
+      style: 'percentage',
+    };
+  }
+
+  get WastedOverpowerBuffsThresholds() {
     return {
       actual: this.wastedProc / this.overpowerCasts,
       isGreaterThan: {
@@ -37,6 +58,8 @@ class OverpowerAnalyzer extends Analyzer {
     executeRange: ExecuteRange,
     enemies: Enemies,
     spellUsable: SpellUsable,
+    abilities: Abilities,
+    tactitican: TacticianProc,
   };
   overpowerCasts = 0;
   wastedProc = 0;
@@ -47,6 +70,14 @@ class OverpowerAnalyzer extends Analyzer {
       Events.cast.by(SELECTED_PLAYER).spell(SPELLS.OVERPOWER),
       this._onOverpowerCast,
     );
+  }
+
+  maxOverpowerCasts() {
+    const overpowerCd = this.abilities.getAbility(SPELLS.OVERPOWER.id).cooldown;
+    const maxOverpowerCast =
+      calculateMaxCasts(overpowerCd, this.owner.fightDuration) + this.tactitican.totalProcs;
+    this.abilities.getAbility(SPELLS.OVERPOWER.id).maxCasts = (num) => maxOverpowerCast;
+    return maxOverpowerCast;
   }
 
   _onOverpowerCast(event) {
@@ -66,7 +97,6 @@ class OverpowerAnalyzer extends Analyzer {
     // if not in execute and stacks were at two when overpower was casted then a proc is considered wasted
     if (!this.executeRange.isTargetInExecuteRange(event)) {
       this.wastedProc += 1;
-
       event.meta = event.meta || {};
       event.meta.isInefficientCast = true;
       event.meta.inefficientCastReason =
@@ -75,7 +105,7 @@ class OverpowerAnalyzer extends Analyzer {
   }
 
   suggestions(when) {
-    when(this.WastedOverpowerThresholds).addSuggestion((suggest, actual, recommended) =>
+    when(this.WastedOverpowerBuffsThresholds).addSuggestion((suggest, actual, recommended) =>
       suggest(
         <>
           Try to avoid using <SpellLink id={SPELLS.OVERPOWER.id} icon /> at 2 stacks when{' '}
@@ -91,6 +121,22 @@ class OverpowerAnalyzer extends Analyzer {
           }),
         )
         .recommended(`${formatPercentage(recommended)}% is recommended.`),
+    );
+
+    when(this.MissedOverpowerCastsThresholds).addSuggestion((suggest, actual, recommended) =>
+      suggest(
+        <>
+          Try to cast <SpellLink id={SPELLS.OVERPOWER.id} icon /> more often.
+        </>,
+      )
+        .icon(SPELLS.OVERPOWER.icon)
+        .actual(
+          t({
+            id: 'warrior.arms.suggestions.overpower.castsMissed',
+            message: `${formatPercentage(actual)}% of possible Overpower casts were missed.`,
+          }),
+        )
+        .recommended(`Less than ${formatPercentage(recommended)}% is recommended.`),
     );
   }
 
