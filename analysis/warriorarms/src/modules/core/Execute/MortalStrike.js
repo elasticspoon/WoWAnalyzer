@@ -7,6 +7,7 @@ import calculateMaxCasts from 'parser/core/calculateMaxCasts';
 import Events from 'parser/core/Events';
 import Abilities from 'parser/core/modules/Abilities';
 import { ThresholdStyle } from 'parser/core/ParseResults';
+import Enemies from 'parser/shared/modules/Enemies';
 import React from 'react';
 
 import ExecuteRange from './ExecuteRange';
@@ -16,17 +17,18 @@ class MortalStrikeAnalyzer extends Analyzer {
     const cd = this.abilities.getAbility(SPELLS.MORTAL_STRIKE.id).cooldown;
     const max = calculateMaxCasts(
       cd,
-      this.owner.fightDuration - this.executeRange.executionPhaseDuration(),
+      this.enduringBlow
+        ? this.owner.fightDuration
+        : this.owner.fightDuration - this.executeRange.executionPhaseDuration(),
     );
-    const maxCast =
-      this.mortalStrikesOutsideExecuteRange / max > 1 ? this.mortalStrikesOutsideExecuteRange : max;
+    const maxCast = this.goodMortalStrikes / max > 1 ? this.goodMortalStrikes : max;
 
     return {
-      actual: this.mortalStrikesOutsideExecuteRange / maxCast,
+      actual: this.goodMortalStrikes / maxCast,
       isLessThan: {
-        minor: 0.9,
-        average: 0.8,
-        major: 0.7,
+        minor: 0.95,
+        average: 0.85,
+        major: 0.75,
       },
       style: ThresholdStyle.PERCENTAGE,
     };
@@ -36,11 +38,10 @@ class MortalStrikeAnalyzer extends Analyzer {
   get notEnoughMortalStrikeThresholds() {
     const cd = 12000; //Deep wounds duration
     const max = calculateMaxCasts(cd, this.executeRange.executionPhaseDuration());
-    const maxCast =
-      this.mortalStrikesInExecuteRange / max > 1 ? this.mortalStrikesInExecuteRange : max;
+    const maxCast = this.badMortalStrikes / max > 1 ? this.badMortalStrikes : max;
 
     return {
-      actual: this.mortalStrikesInExecuteRange / maxCast,
+      actual: this.badMortalStrikes / maxCast,
       isLessThan: {
         minor: 0.9,
         average: 0.8,
@@ -53,11 +54,10 @@ class MortalStrikeAnalyzer extends Analyzer {
   get tooMuchMortalStrikeThresholds() {
     const cd = 12000; //Deep wounds duration
     const max = calculateMaxCasts(cd, this.executeRange.executionPhaseDuration());
-    const maxCast =
-      this.mortalStrikesInExecuteRange / max > 1 ? this.mortalStrikesInExecuteRange : max;
+    const maxCast = this.badMortalStrikes / max > 1 ? this.badMortalStrikes : max;
 
     return {
-      actual: 1 - this.mortalStrikesInExecuteRange / maxCast,
+      actual: 1 - this.badMortalStrikes / maxCast,
       isGreaterThan: {
         minor: 1,
         average: 1.15,
@@ -70,9 +70,11 @@ class MortalStrikeAnalyzer extends Analyzer {
   static dependencies = {
     abilities: Abilities,
     executeRange: ExecuteRange,
+    enemies: Enemies,
   };
-  mortalStrikesOutsideExecuteRange = 0;
-  mortalStrikesInExecuteRange = 0;
+  goodMortalStrikes = 0;
+  badMortalStrikes = 0;
+  enduringBlow = this.selectedCombatant.hasLegendaryByBonusID(SPELLS.ENDURING_BLOW.bonusID);
 
   constructor(...args) {
     super(...args);
@@ -82,15 +84,39 @@ class MortalStrikeAnalyzer extends Analyzer {
     );
   }
 
-  _onMortalStrikeCast(event) {
+  isBadMortalStrikeCast(event) {
     if (this.executeRange.isTargetInExecuteRange(event)) {
-      this.mortalStrikesInExecuteRange += 1;
+      const battlelord = this.selectedCombatant.getBuff(SPELLS.BATTLELORD.id);
 
-      //event.meta = event.meta || {};
-      //event.meta.isInefficientCast = true;
-      //event.meta.inefficientCastReason = 'This Mortal Strike was used on a target in Execute range.';
+      const overpower = this.selectedCombatant.getBuff(SPELLS.OVERPOWER.id);
+      const exploiter = this.enemies.enemies[event.targetID].hasBuff(
+        SPELLS.EXPLOITER.id,
+        null,
+        0,
+        0,
+        event.sourceID,
+      );
+
+      const exploiter2Stack = exploiter && exploiter.stacks === 2;
+      const overpower2Stack = overpower && overpower.stacks === 2;
+
+      //mortal strike should only be cast in execute if:
+      //enduring blow legenadry
+      //battlelord buff is up
+      //target has 2 exploiter stacks and you have 2 overpower stacks (ill figure this out later prolly)
+      if (battlelord || this.enduringBlow || (exploiter2Stack && overpower2Stack)) {
+        return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  _onMortalStrikeCast(event) {
+    if (this.isBadMortalStrikeCast(event)) {
+      this.badMortalStrikes += 1;
     } else {
-      this.mortalStrikesOutsideExecuteRange += 1;
+      this.goodMortalStrikes += 1;
     }
   }
 
@@ -109,7 +135,7 @@ class MortalStrikeAnalyzer extends Analyzer {
           t({
             id: 'warrior.arms.suggestions.mortalStrike.efficiency',
             message: `Mortal Strike was cast ${
-              this.mortalStrikesInExecuteRange
+              this.badMortalStrikes
             } times accounting for ${formatPercentage(
               actual,
             )}% of the total possible casts of Mortal Strike during a time a target was in execute range.`,
