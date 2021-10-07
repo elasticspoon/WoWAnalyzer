@@ -5,6 +5,7 @@ import { SpellLink } from 'interface';
 import Analyzer, { SELECTED_PLAYER } from 'parser/core/Analyzer';
 import Events from 'parser/core/Events';
 import { ThresholdStyle } from 'parser/core/ParseResults';
+import { encodeTargetString } from 'parser/shared/modules/EnemyInstances';
 import React from 'react';
 
 import SpellUsable from '../../features/SpellUsable';
@@ -29,7 +30,8 @@ class RendAnalyzer extends Analyzer {
   };
   rends = 0;
   badRendsInExecuteRange = 0;
-  rendTable = [];
+  rendCasts = [];
+  dotApplications = [];
 
   constructor(...args) {
     super(...args);
@@ -38,12 +40,25 @@ class RendAnalyzer extends Analyzer {
       Events.cast.by(SELECTED_PLAYER).spell(SPELLS.REND_TALENT),
       this._onRendCast,
     );
+    this.addEventListener(
+      Events.removedebuff.by(SELECTED_PLAYER).spell(SPELLS.REND_TALENT),
+      this._onRendExpire,
+    );
+    this.addEventListener(
+      Events.refreshdebuff.by(SELECTED_PLAYER).spell(SPELLS.REND_TALENT),
+      this._onRefreshRend,
+    );
+    this.addEventListener(
+      Events.applydebuff.by(SELECTED_PLAYER).spell(SPELLS.REND_TALENT),
+      this._onApplyRend,
+    );
   }
 
   //in execute rend should be applied if:
   // 4 seconds or less remain on colossus smash or warbreaker cd - done
   // the target will live 12 seconds - not sure how to implment yet.
   _onRendCast(event) {
+    this.rendCasts[event.timestamp] = event;
     this.rends += 1;
     if (this.executeRange.isTargetInExecuteRange(event)) {
       if (this.selectedCombatant.hasTalent(SPELLS.WARBREAKER_TALENT.id)) {
@@ -72,6 +87,55 @@ class RendAnalyzer extends Analyzer {
         }
       }
     }
+  }
+
+  _onRendExpire(event) {
+    try {
+      const dotApp = this.dotApplications[encodeTargetString(event.targetID, event.targetInstance)];
+      const rendCast = this.rendCasts[dotApp.timestamp];
+      const duration = (event.timestamp - rendCast.timestamp) / 1000;
+      if (!rendCast.meta && duration < 12) {
+        rendCast.meta = rendCast.meta || {};
+        rendCast.meta.isInefficientCast = true;
+        rendCast.meta.inefficientCastReason = `Target lived ${duration}s. Try not to cast Rend on targets that will not live its full duration.`;
+      } else if (rendCast.meta.inefficientCastReason.toString().includes('Target lived')) {
+        if (duration < 12) {
+          rendCast.meta.inefficientCastReason = `Target lived ${duration}s. Try not to cast Rend on targets that will not live its full duration.`;
+        } else {
+          rendCast.meta = {};
+        }
+      }
+    } catch (err) {
+      if (err instanceof TypeError) {
+        return 0;
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  _onApplyRend(event) {
+    if (this.rendCasts[event.timestamp]) {
+      this.dotApplications[
+        encodeTargetString(event.targetID, event.targetInstance)
+      ] = this.rendCasts[event.timestamp];
+    }
+  }
+
+  _onRefreshRend(event) {
+    try {
+      const rendCast = this.rendCasts[event.timestamp];
+      if (rendCast.meta.inefficientCastReason.toString().includes('Target lived')) {
+        rendCast.meta = {};
+      }
+    } catch (err) {
+      if (err instanceof TypeError) {
+        return 0;
+      } else {
+        throw err;
+      }
+    }
+    this._onApplyRend(event);
   }
 
   suggestions(when) {
