@@ -103,7 +103,7 @@ class MortalStrikeAnalyzer extends Analyzer {
       //mortal strike should only be cast in execute if:
       //enduring blow legenadry
       //battlelord buff is up
-      //target has 2 exploiter stacks and you have 2 overpower stacks (ill figure this out later prolly)
+      //target has 2 exploiter stacks and you have 2 overpower stacks
       if (battlelord || this.enduringBlow || (exploiter2Stack && overpower2Stack)) {
         return false;
       }
