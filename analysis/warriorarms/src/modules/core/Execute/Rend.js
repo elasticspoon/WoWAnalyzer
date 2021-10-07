@@ -58,7 +58,7 @@ class RendAnalyzer extends Analyzer {
   // 4 seconds or less remain on colossus smash or warbreaker cd - done
   // the target will live 12 seconds - not sure how to implment yet.
   _onRendCast(event) {
-    this.rendCasts[event.timestamp] = event;
+    this.rendCasts[event.timestamp] = { rend: event, duration: 0 };
     this.rends += 1;
     if (this.executeRange.isTargetInExecuteRange(event)) {
       if (this.selectedCombatant.hasTalent(SPELLS.WARBREAKER_TALENT.id)) {
@@ -89,20 +89,22 @@ class RendAnalyzer extends Analyzer {
     }
   }
 
+  // labels rend cast as bad if rend did not stay up a combined 12s
   _onRendExpire(event) {
     try {
       const dotApp = this.dotApplications[encodeTargetString(event.targetID, event.targetInstance)];
       const rendCast = this.rendCasts[dotApp.timestamp];
-      const duration = (event.timestamp - rendCast.timestamp) / 1000;
-      if (!rendCast.meta && duration < 12) {
-        rendCast.meta = rendCast.meta || {};
-        rendCast.meta.isInefficientCast = true;
-        rendCast.meta.inefficientCastReason = `Target lived ${duration}s. Try not to cast Rend on targets that will not live its full duration.`;
-      } else if (rendCast.meta.inefficientCastReason.toString().includes('Target lived')) {
-        if (duration < 12) {
-          rendCast.meta.inefficientCastReason = `Target lived ${duration}s. Try not to cast Rend on targets that will not live its full duration.`;
+      const duration = (event.timestamp - rendCast.rend.timestamp) / 1000;
+      rendCast.duration += duration;
+      if (!rendCast.rend.meta && rendCast.duration < 12) {
+        rendCast.rend.meta = rendCast.rend.meta || {};
+        rendCast.rend.meta.isInefficientCast = true;
+        rendCast.rend.meta.inefficientCastReason = `Target lived ${duration}s. Try not to cast Rend on targets that will not live its full duration.`;
+      } else if (rendCast.rend.meta.inefficientCastReason.toString().includes('Target lived')) {
+        if (rendCast.duration < 12) {
+          rendCast.rend.meta.inefficientCastReason = `Target lived ${duration}s. Try not to cast Rend on targets that will not live its full duration.`;
         } else {
-          rendCast.meta = {};
+          rendCast.rend.meta = {};
         }
       }
     } catch (err) {
@@ -118,13 +120,13 @@ class RendAnalyzer extends Analyzer {
     if (this.rendCasts[event.timestamp]) {
       this.dotApplications[
         encodeTargetString(event.targetID, event.targetInstance)
-      ] = this.rendCasts[event.timestamp];
+      ] = this.rendCasts[event.timestamp].rend;
     }
   }
 
   _onRefreshRend(event) {
     try {
-      const rendCast = this.rendCasts[event.timestamp];
+      const rendCast = this.rendCasts[event.timestamp].rend;
       if (rendCast.meta.inefficientCastReason.toString().includes('Target lived')) {
         rendCast.meta = {};
       }
