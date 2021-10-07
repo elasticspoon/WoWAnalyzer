@@ -72,6 +72,8 @@ const MAX_ENCHANT_IDS = [
 
   // Other
   2715, // https://tbc.wowhead.com/spell=29475/resilience-of-the-scourge
+  2716, // https://tbc.wowhead.com/spell=29480/fortitude-of-the-scourge
+  2583, // https://tbc.wowhead.com/spell=24149/presence-of-might
 
   // Chest
   1950, // https://tbc.wowhead.com/spell=46594/enchant-chest-defense
@@ -113,6 +115,9 @@ const MAX_ENCHANT_IDS = [
   2935, // https://tbc.wowhead.com/spell=46516/enchant-gloves-spell-strike
   2934, // https://tbc.wowhead.com/spell=46512/enchant-gloves-blasting
   1594, // https://tbc.wowhead.com/spell=46511/enchant-gloves-assault
+  2564, // https://tbc.wowhead.com/spell=25080/enchant-gloves-superior-agility
+  2613, // https://tbc.wowhead.com/spell=25072/enchant-gloves-threat
+  684, // https://tbc.wowhead.com/spell=33995/enchant-gloves-major-strength
 
   // Ring
   2930, // https://tbc.wowhead.com/spell=46517/enchant-ring-healing-power
@@ -147,6 +152,7 @@ const MAX_ENCHANT_IDS = [
   3223, // https://tbc.wowhead.com/spell=42688/adamantite-weapon-chain
   2667, // https://tbc.wowhead.com/spell=46462/enchant-2h-weapon-savagery
   2670, // https://tbc.wowhead.com/spell=46461/enchant-2h-weapon-major-agility
+  2564, // https://tbc.wowhead.com/spell=23800/enchant-weapon-agility
 
   // 2H Weapon
   2667, //  https://tbc.wowhead.com/spell=46462/enchant-2h-weapon-savagery

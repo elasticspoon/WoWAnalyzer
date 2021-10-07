@@ -1,28 +1,44 @@
 import { Trans } from '@lingui/macro';
 import { captureException } from 'common/errorLogger';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 
-class ErrorBoundary extends React.Component {
+declare global {
+  interface Window {
+    errors?: Error[];
+  }
+}
+
+interface Props {
+  children: ReactNode;
+}
+interface State {
+  error?: Error;
+  errorDetails?: string;
+}
+
+class ErrorBoundary extends Component<Props, State> {
   static propTypes = {
     children: PropTypes.node,
   };
 
-  constructor(props) {
+  constructor(props: Props) {
     super(props);
     this.state = {
-      error: null,
-      errorDetails: null,
+      error: undefined,
+      errorDetails: undefined,
     };
   }
 
-  componentDidCatch(error, errorInfo) {
+  componentDidCatch(error: Error, { componentStack }: ErrorInfo) {
     // Raven doesn't do this automatically
-    captureException(error, { extra: errorInfo });
-    this.error(error, errorInfo.componentStack);
+    captureException(error, {
+      contexts: { react: { componentStack } },
+    });
+    this.error(error, componentStack);
   }
 
-  error(error, details = null) {
+  error(error: Error, details?: string) {
     (window.errors = window.errors || []).push(error);
 
     this.setState({
@@ -37,7 +53,7 @@ class ErrorBoundary extends React.Component {
         <div className="alert alert-danger">
           <h1 style={{ marginTop: 0 }}>
             <Trans id="interface.common.errorBoundary.error">
-              An error occured while trying to render this part of the page.
+              An error occurred while trying to render this part of the page.
             </Trans>
           </h1>
           <p className="text-muted">
@@ -77,6 +93,7 @@ class ErrorBoundary extends React.Component {
         </div>
       );
     }
+
     return this.props.children;
   }
 }
