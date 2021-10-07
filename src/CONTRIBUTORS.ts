@@ -1661,3 +1661,8 @@ export const Pink: Contributor = {
     },
   ],
 };
+
+export const bandit: Contributor = {
+  nickname: 'bandit',
+  github: 'elasticspoon',
+};
