@@ -1731,3 +1731,7 @@ export const Karahtar: Contributor = {
     },
   ],
 };
+export const bandit: Contributor = {
+  nickname: 'bandit',
+  github: 'elasticspoon',
+};
