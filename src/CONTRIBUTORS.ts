@@ -1735,3 +1735,8 @@ export const bandit: Contributor = {
   nickname: 'bandit',
   github: 'elasticspoon',
 };
+
+export const ChrisKaczor: Contributor = {
+  nickname: 'Chris Kaczor',
+  github: 'ckaczor',
+};
