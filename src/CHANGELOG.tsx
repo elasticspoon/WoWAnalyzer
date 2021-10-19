@@ -53,6 +53,7 @@ import React from 'react';
 // prettier-ignore
 export default [
   change(date(2021, 10, 19), 'Added Sanctum of Domination boss phases and details.', Adoraci),
+  change(date(2021, 10, 19), 'Fixed typo in footer links.', emallson),
   change(date(2021, 10, 18), 'Small localization changes and another batch of basic TypeScript conversions/improvements.', ChrisKaczor),
   change(date(2021, 10, 18), 'Another batch of basic TypeScript conversions/improvements.', ChrisKaczor),
   change(date(2021, 10, 17), 'Remove paywall on timeline.', emallson),
