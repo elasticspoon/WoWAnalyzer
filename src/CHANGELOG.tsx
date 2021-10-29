@@ -1,7 +1,50 @@
 import { change, date } from 'common/changelog';
 import ITEMS from 'common/ITEMS';
 import SPELLS from 'common/SPELLS';
-import { Abelito75, acornellier, AdamKelly, Adoraci, Amani, Anomoly, Barry, Barter, Buudha, ChagriAli, ChristopherKiss, Dambroda, emallson, flurreN, Guyius, Haelrail, HolySchmidt, Jafowler, jos3p, joshinator, Juko8, Kartarn, Keraldi, Khazak, Kruzershtern, Mae, maestrohdude, Maldark, Moonrabbit, niseko, Procyon, Putro, Sharrq, Sref, Ssabbar, Soulhealer95, wmavis, Zeboot, Zerotorescue, niko, Pirrang } from 'CONTRIBUTORS';
+import {
+  Abelito75,
+  acornellier,
+  AdamKelly,
+  Adoraci,
+  Amani,
+  Anomoly,
+  Barry,
+  Barter,
+  Buudha,
+  ChagriAli,
+  ChristopherKiss,
+  Dambroda,
+  emallson,
+  flurreN,
+  Guyius,
+  Haelrail,
+  HolySchmidt,
+  Jafowler,
+  jos3p,
+  joshinator,
+  Juko8,
+  Kartarn,
+  Keraldi,
+  Khazak,
+  Kruzershtern,
+  Mae,
+  maestrohdude,
+  Maldark,
+  Moonrabbit,
+  niseko,
+  Procyon,
+  Putro,
+  Sharrq,
+  Sref,
+  Ssabbar,
+  Soulhealer95,
+  wmavis,
+  Zeboot,
+  Zerotorescue,
+  niko,
+  Pirrang,
+  ChrisKaczor,
+} from 'CONTRIBUTORS';
 import { ItemLink } from 'interface';
 import SpellLink from 'interface/SpellLink';
 import React from 'react';
@@ -9,6 +52,18 @@ import React from 'react';
 
 // prettier-ignore
 export default [
+  change(date(2021, 10, 27), 'Clean up character page for TBC characters.', emallson),
+  change(date(2021, 10, 21), 'Remove paywall on timeline.', emallson),
+  change(date(2021, 10, 20), 'Fix a crashing issue with Sanctum of Domination Vantus Runes.', emallson),
+  change(date(2021, 10, 19), 'Fix issue with loading in boss data', Adoraci),
+  change(date(2021, 10, 19), 'Added Sanctum of Domination boss phases and details.', Adoraci),
+  change(date(2021, 10, 19), 'Fixed typo in footer links.', emallson),
+  change(date(2021, 10, 18), 'Another batch of basic TypeScript conversions/improvements.', ChrisKaczor),
+  change(date(2021, 10, 17), 'Improved APL checker performance.', emallson),
+  change(date(2021, 10, 16), 'Add support for automatic checklist generation & timeline annotation from an APL.', emallson),
+  change(date(2021, 10, 15), 'Another batch of basic TypeScript conversions and improvements.', ChrisKaczor),
+  change(date(2021, 10, 14), 'Batch of basic TypeScript conversions and improvements.', ChrisKaczor),
+  change(date(2021, 10, 13), 'Localization and TypeScript changes.', ChrisKaczor),
   change(date(2021, 9, 29), 'Fixed typo in error page.', emallson),
   change(date(2021, 9, 21), 'Added conduit view on character page', Pirrang),
   change(date(2021, 8, 31), 'Fixed an issue where Premium was immediately lost upon unsubscribing in Patreon, even if you were eligible for benefits for the remainder of the month.', Zerotorescue),

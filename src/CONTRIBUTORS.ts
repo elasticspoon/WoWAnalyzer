@@ -915,13 +915,6 @@ export const Adoraci: Contributor = {
       link: 'https://worldofwarcraft.com/en-us/character/us/zuljin/adoraci',
     },
   ],
-  alts: [
-    {
-      name: 'Zenavi',
-      spec: SPECS.FURY_WARRIOR,
-      link: 'https://worldofwarcraft.com/en-us/character/us/zuljin/zenavi',
-    },
-  ],
 };
 export const TheJigglr: Contributor = {
   nickname: 'TheJigglr',
@@ -1662,11 +1655,6 @@ export const Pink: Contributor = {
   ],
 };
 
-export const bandit: Contributor = {
-  nickname: 'bandit',
-  github: 'elasticspoon',
-};
-
 export const Pirrang: Contributor = {
   nickname: 'Pirrang',
   discord: 'Pirrang#1818',
@@ -1707,6 +1695,67 @@ export const Charurun: Contributor = {
       name: 'Charuru',
       spec: SPECS.RETRIBUTION_PALADIN,
       link: 'https://classic.warcraftlogs.com/character/id/42940009',
+    },
+  ],
+};
+
+export const Talador12: Contributor = {
+  nickname: 'Talador12',
+  discord: 'Talador12#4269',
+  github: 'Talador12',
+  mains: [
+    {
+      name: 'Kikori',
+      spec: SPECS.DESTRUCTION_WARLOCK,
+      link: 'https://classic.warcraftlogs.com/character/id/60308170',
+    },
+  ],
+};
+
+export const Karahtar: Contributor = {
+  nickname: 'Karahtar',
+  discord: 'Karahtar#8859',
+  github: 'npaganini',
+  mains: [
+    {
+      name: 'Karatar',
+      spec: SPECS.ARCANE_MAGE,
+      link: 'https://www.warcraftlogs.com/character/us/kelthuzad/karatar',
+    },
+  ],
+};
+
+export const bandit: Contributor = {
+  nickname: 'bandit',
+  github: 'elasticspoon',
+};
+
+export const ChrisKaczor: Contributor = {
+  nickname: 'Chris Kaczor',
+  github: 'ckaczor',
+};
+
+export const Yax: Contributor = {
+  nickname: 'Yax',
+  github: 'WarcraftYax',
+  avatar: avatar('Yax-avatar.jpg'),
+  mains: [
+    {
+      name: 'Xyä',
+      spec: SPECS.VENGEANCE_DEMON_HUNTER,
+      link: 'https://worldofwarcraft.com/en-gb/character/eu/kazzak/Xy%C3%A4',
+    },
+  ],
+  alts: [
+    {
+      name: 'Blodhgärm',
+      spec: SPECS.GUARDIAN_DRUID,
+      link: 'https://worldofwarcraft.com/en-gb/character/eu/kazzak/Blodhg%C3%A4rm',
+    },
+    {
+      name: 'Äxy',
+      spec: SPECS.FURY_WARRIOR,
+      link: 'https://worldofwarcraft.com/en-gb/character/eu/kazzak/%C3%84xy',
     },
   ],
 };
